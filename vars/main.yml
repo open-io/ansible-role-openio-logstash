@@ -1,8 +1,13 @@
 ---
-openio_ROLENAME_sysconfig_dir: "/etc/oio/sds/{{ openio_ROLENAME_namespace }}"
-openio_ROLENAME_servicename: "ROLENAME-{{ openio_ROLENAME_serviceid }}"
+openio_logstash_sysconfig_dir: "/etc/oio/sds/{{ openio_logstash_namespace }}"
+openio_logstash_servicename: "logstash-{{ openio_logstash_serviceid }}"
 
-openio_ROLENAME_definition_file: >
-  "{{ openio_ROLENAME_sysconfig_dir }}/
-  {{ openio_ROLENAME_servicename }}/{{ openio_ROLENAME_servicename }}.conf"
+openio_logstash_definition_file: >
+  "{{ openio_logstash_sysconfig_dir }}/
+  {{ openio_logstash_servicename }}/{{ openio_logstash_servicename }}.yml"
+openio_logstash_log_dir:
+  "/var/log/oio/sds/{{ openio_logstash_namespace }}/{{ openio_logstash_servicename }}"
+openio_logstash_classpath:
+  - "{{ openio_logstash_sysconfig_dir }}/{{ openio_logstash_servicename }}"
+  - /usr/share/logstash/logstash-core/lib/jars/*
 ...

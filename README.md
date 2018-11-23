@@ -1,70 +1,10 @@
+[![Build Status](https://travis-ci.org/open-io/ansible-role-openio-logstash.svg?branch=master)](https://travis-ci.org/open-io/ansible-role-openio-logstash)
+# Ansible role `logstash`
 
-> **Remove this part after a clone**
+An Ansible role for logstash. Specifically, the responsibilities of this role are to:
 
-```sh
-git clone git@github.com:open-io/ansible-role-openio-skeleton.git ROLENAME
-cd ROLENAME
-grep -r -E '\b[A-Z]+\b' --exclude=LICENSE *
-find $PWD -type f -print0 | xargs -0 sed -i -e 's@ROLENAME@trueName@g'
-git remote -v
-git remote set-url origin git@github.com:open-io/ansible-role-openio-ROLENAME.git
-
-vi meta/main.yml # change purpose and tags
-vi README.md
-git worktree add docker-tests origin/docker-tests
-```
-
-It is **required** to:
-  - Change the author
-  - Choose one or many maintainers
-  - Change the purpose
-  - Change the rolename
-  - Inform the responsibilities of this role (README)
-  - Feed the `Role Variables` table (README)
-  - Add one or more examples of playbook (README)
-  - Activate tests in Travis CI
-  - Write functional tests in the branch `docker-tests`
-
-It is **recommended** to:
-  - Setup tests on your local machine (see below)
-
-> Use the following instructions to setup your testing environment
-> (make sure virtualenv2 is installed)
->
-```sh
-virtualenv2 env && source env/bin/activate
-pip install yamllint ansible-lint
-# Run tests run before each commit
-export HOOK=".git/hooks/prepare-commit-msg"
-if [ ! -f "$HOOK" ] ; then echo "#\!/bin/sh" > "$HOOK" && chmod +x "$HOOK"; fi
-cat << \EOF >> .git/hooks/prepare-commit-msg
-cmds=("ansible-lint . -x ANSIBLE0016" "yamllint -c .yamllint .")
-for cmd in "${cmds[@]}"; do
-  echo "Running ${cmd%% *}"
-  cmd_out="$($cmd)"
-  echo -n "${cmd_out}"
-  if [ "$cmd_out" ]; then
-      echo -e "\nRejecting commit: ${cmd%% *} returned errors"
-      exit 1
-  fi
-done
-EOF
-```
-
-#### `Role Variables` table
-```sh
-for i in $(grep -E "^openio_" defaults/main.yml |cut -d':' -f1| sort); do echo '|' '`'$i'`'' | `'$(grep $i defaults/main.yml|cut -d: -f2|sed -e "s/^ //")'` | ... |'; done
-```
-
------REMOVE--THE---8<-----PREVIOUS---PART------
-__
-
-[![Build Status](https://travis-ci.org/open-io/ansible-role-openio-ROLENAME.svg?branch=master)](https://travis-ci.org/open-io/ansible-role-openio-ROLENAME)
-# Ansible role `ROLENAME`
-
-An Ansible role for PURPOSE. Specifically, the responsibilities of this role are to:
-
--
+- install logstash
+- configure logstash with OpenIO template
 
 ## Requirements
 
@@ -72,10 +12,26 @@ An Ansible role for PURPOSE. Specifically, the responsibilities of this role are
 
 ## Role Variables
 
-
 | Variable   | Default | Comments (type)  |
 | :---       | :---    | :---             |
-| `openio_ROLENAME_...` | `...`   | ...              |
+| `openio_logstash_beats_address` | `localhost` | ... |
+| `openio_logstash_beats_port` | `5044` | ... |
+| `openio_logstash_beats_ssl` | `false` | ... |
+| `openio_logstash_elasticsearch_address` | `localhost` | ... |
+| `openio_logstash_elasticsearch_login` | `logstash` | ... |
+| `openio_logstash_elasticsearch_password` | `logstash` | ... |
+| `openio_logstash_elasticsearch_port` | `6400` | ... |
+| `openio_logstash_gridinit_dir` | `"/etc/gridinit.d/{{ openio_logstash_namespace }}"` | ... |
+| `openio_logstash_gridinit_file_prefix` | `""` | ... |
+| `openio_logstash_ignore_key_error` | `false` | ... |
+| `openio_logstash_java_args` | `...` | ... |
+| `openio_logstash_memory` | `512M` | ... |
+| `openio_logstash_namespace` | `"OPENIO"` | ... |
+| `openio_logstash_pid_directory` | `/run/logstash/{{ openio_logstash_namespace }}/logstash-{{ openio_logstash_serviceid }}` | ... |
+| `openio_logstash_provision_only` | `false` | ... |
+| `openio_logstash_repo` | `"6.x"` | ... |
+| `openio_logstash_serviceid` | `"0"` | ... |
+| `openio_logstash_volume` | `` | ... |
 
 ## Dependencies
 
@@ -84,11 +40,18 @@ No dependencies.
 ## Example Playbook
 
 ```yaml
-- hosts: all
-  gather_facts: true
+- hosts: localhost
   become: true
+  vars:
+    NS: OPENIO
   roles:
-    - role: ROLENAME
+    - role: repo
+    - role: gridinit
+      openio_gridinit_namespace: "{{ NS }}"
+      openio_gridinit_per_ns: true
+    - role: logstash
+      openio_logstash_namespace: "{{ NS }}"
+      openio_logstash_memory: "256M"
 ```
 
 
@@ -112,7 +75,3 @@ GNU AFFERO GENERAL PUBLIC LICENSE, Version 3
 ## Contributors
 
 - [Cedric DELGEHIER](https://github.com/cdelgehier) (maintainer)
-- [Romain ACCIARI](https://github.com/racciari) (maintainer)
-- [Vincent LEGOLL](https://github.com/vincent-legoll) (maintainer)
-- [Sebastien LAPIERRE](https://github.com/sebastienlapierre) (maintainer)
-- [Geoffrey TIEN](https://github.com/GeoffreyTien) (maintainer)

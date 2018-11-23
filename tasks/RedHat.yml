@@ -1,14 +1,63 @@
 ---
-- name: Install packages
-  package:
-    name: "{{ pkg }}"
-    state: present
-  with_items: "{{ ROLENAME_packages }}"
-  loop_control:
-    loop_var: pkg
-  ignore_errors: "{{ ansible_check_mode }}"
-  register: install_packages
-  until: install_packages is success
-  retries: 5
-  delay: 2
+- block:
+    - name: Add Elastic gpg key
+      rpm_key:
+        key: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+        state: present
+      register: add_repository_key
+      ignore_errors: "{{ openio_logstash_ignore_key_error }}"
+
+    - name: Ensure curl is present (on older systems without SNI).
+      package:
+        name: curl
+        state: present
+      when: add_repository_key is failed
+
+    - name: Add Elasticsearch rpm key (alternative for older systems without SNI).
+      shell: |
+        curl -sSL -o /tmp/GPG-KEY-elasticsearch https://artifacts.elastic.co/GPG-KEY-elasticsearch
+        rpm --import /tmp/GPG-KEY-elasticsearch
+        rm /tmp/GPG-KEY-elasticsearch
+      args:
+        warn: false
+      when: add_repository_key is failed
+
+    - name: repository installation
+      yum_repository:
+        name: "{{ openio_logstash_repo_filename }}"
+        description: "Elasticsearch {{ openio_logstash_repo }} repository"
+        baseurl: "{{ openio_logstash_repo_baseurl }}"
+        gpgkey: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+        gpgcheck: 1
+
+    - name: Install packages
+      package:
+        name: "{{ pkg }}"
+        state: present
+      with_items:
+        - "{{ logstash_packages }}"
+        - "{{ 'logstash-' ~ openio_logstash_version }}"
+      loop_control:
+        loop_var: pkg
+      ignore_errors: "{{ ansible_check_mode }}"
+      register: install_packages
+      until: install_packages is success
+      retries: 5
+      delay: 2
+  when: not openio_logstash_oss
+
+- block:
+    - name: Install OSS package
+      yum:
+        name: "{{ pkg }}"
+      register: install_packages
+      until: install_packages is success
+      retries: 5
+      delay: 2
+      loop_control:
+        loop_var: pkg
+      with_items:
+        - "{{ logstash_packages }}"
+        - "https://artifacts.elastic.co/downloads/logstash/logstash-oss-{{ openio_logstash_version }}.rpm"
+  when: openio_logstash_oss
 ...

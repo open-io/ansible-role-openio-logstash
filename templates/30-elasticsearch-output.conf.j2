@@ -1,0 +1,13 @@
+output {
+  elasticsearch {
+    hosts => ["http://{{ openio_logstash_elasticsearch_address }}:{{ openio_logstash_elasticsearch_port }}"]
+    index => "oio-%{+YYYY.MM.dd}"
+    manage_template => true
+    template => ["{{ openio_logstash_sysconfig_dir }}/{{ openio_logstash_servicename }}/conf.d/templates/oio-template.conf"]
+    template_name => ["oio-template"]
+    template_overwrite => true
+    document_type => "%{[@metadata][type]}"
+    user => {{ openio_logstash_elasticsearch_login }}
+    password => {{ openio_logstash_elasticsearch_password }}
+  }
+}

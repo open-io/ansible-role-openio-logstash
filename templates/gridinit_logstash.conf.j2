@@ -1,0 +1,20 @@
+# {{ ansible_managed }}
+[Service.{{ openio_logstash_namespace }}-logstash-{{ openio_logstash_serviceid }}]
+command=/usr/bin/java {{ openio_logstash_java_args }} -cp "{{ openio_logstash_classpath | join(':') }}" org.logstash.Logstash --path.settings {{ openio_logstash_sysconfig_dir }}/{{ openio_logstash_servicename }}
+enabled=true
+start_at_boot=true
+on_die=respawn
+group={{ openio_logstash_namespace }},logstash,{{ openio_logstash_serviceid }}
+uid=openio
+gid=openio
+env.PATH=/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin
+#
+env.JAVACMD=/bin/java
+env.LS_HOME=/usr/share/logstash
+#env.LS_SETTINGS_DIR={{ openio_logstash_sysconfig_dir }}/{{ openio_logstash_servicename }}
+#env.LS_PIDFILE={{ openio_logstash_pid_directory }}/logstash.pid
+#env.LS_GC_LOG_FILE="{{ openio_logstash_log_dir }}/gc.log"
+#env.LS_OPEN_FILES=16384
+#env.LS_NICE="19
+#env.SERVICE_NAME="logstash"
+#env.SERVICE_DESCRIPTION="logstash"

@@ -1,7 +1,13 @@
-# roles/ROLENAME/vars/Debian.yml
+# roles/logstash/vars/Debian.yml
 # Distribution-specific variables for Ubuntu, Debian, ...
 ---
-ROLENAME_packages:
-  - openio-ROLENAME
+logstash_packages:
+  - default-jre-headless
+  #- logstash
+  - debianutils
 syslog_user: syslog
+openio_logstash_repo_baseurl:
+  "deb https://artifacts.elastic.co/packages/{{ openio_logstash_repo }}/apt stable main"
+
+openio_logstash_repo_filename: "elasticsearch-{{ openio_logstash_repo }}"
 ...

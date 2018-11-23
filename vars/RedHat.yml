@@ -1,7 +1,12 @@
-# roles/ROLENAME/vars/RedHat.yml
+# roles/logstash/vars/RedHat.yml
 # Distribution-specific variables for RHEL, CentOS, ...
 ---
-ROLENAME_packages:
-  - openio-ROLENAME
+logstash_packages:
+  - java-headless
+  #- logstash
+  - which
 syslog_user: openio
+
+openio_logstash_repo_filename: "elasticsearch-{{ openio_logstash_repo }}"
+openio_logstash_repo_baseurl: "https://artifacts.elastic.co/packages/{{ openio_logstash_repo }}/yum"
 ...

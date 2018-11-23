@@ -1,16 +1,44 @@
-# roles/ROLENAME/defaults/main.yml
+# roles/logstash/defaults/main.yml
 ---
-openio_ROLENAME_namespace: "OPENIO"
-openio_ROLENAME_serviceid: "0"
+openio_logstash_namespace: "OPENIO"
+openio_logstash_serviceid: "0"
 
-openio_ROLENAME_gridinit_dir: "/etc/gridinit.d/{{ openio_ROLENAME_namespace }}"
-openio_ROLENAME_gridinit_file_prefix: ""
+openio_logstash_gridinit_dir: "/etc/gridinit.d/{{ openio_logstash_namespace }}"
+openio_logstash_gridinit_file_prefix: ""
 
-#openio_ROLENAME_bind_interface: "{{ ansible_default_ipv4.alias }}"
-#openio_ROLENAME_bind_address:
-#  "{{ hostvars[inventory_hostname]['ansible_' + openio_ROLENAME_bind_interface]['ipv4']['address'] }}"
+openio_logstash_repo: "6.x"
+openio_logstash_version: "6.5.1"
+openio_logstash_oss: true
 
-#openio_ROLENAME_volume: "/var/lib/oio/sds/{{ openio_ROLENAME_namespace }}/ROLENAME-{{ openio_ROLENAME_serviceid }}"
-openio_ROLENAME_provision_only: false
-openio_ROLENAME_location: "{{ ansible_hostname }}.{{ openio_ROLENAME_serviceid }}"
+openio_logstash_bind_interface: "{{ ansible_default_ipv4.alias }}"
+openio_logstash_bind_address:
+  "{{ hostvars[inventory_hostname]['ansible_' + openio_logstash_bind_interface]['ipv4']['address'] }}"
+openio_logstash_bind_port: 6470
+
+openio_logstash_ignore_key_error: false
+openio_logstash_volume:
+  "/var/lib/oio/sds/{{ openio_logstash_namespace }}/logstash-{{ openio_logstash_serviceid }}"
+openio_logstash_provision_only: false
+openio_logstash_memory: "512M"
+openio_logstash_java_args: "-Xms{{ openio_logstash_memory }} -Xmx{{ openio_logstash_memory }} \
+  -XX:+UseParNewGC \
+  -XX:+UseConcMarkSweepGC \
+  -XX:CMSInitiatingOccupancyFraction=75 \
+  -XX:+UseCMSInitiatingOccupancyOnly \
+  -XX:+DisableExplicitGC \
+  -Djava.awt.headless=true \
+  -Dfile.encoding=UTF-8 \
+  -XX:+HeapDumpOnOutOfMemoryError"
+
+openio_logstash_pid_directory:
+  "/run/logstash/{{ openio_logstash_namespace }}/logstash-{{ openio_logstash_serviceid }}"
+
+openio_logstash_beats_address: "{{ openio_logstash_bind_address }}"
+openio_logstash_beats_port: 6444
+openio_logstash_beats_ssl: false
+
+openio_logstash_elasticsearch_login: logstash
+openio_logstash_elasticsearch_password: logstash
+openio_logstash_elasticsearch_address: "{{ openio_logstash_bind_address }}"
+openio_logstash_elasticsearch_port: 6400
 ...

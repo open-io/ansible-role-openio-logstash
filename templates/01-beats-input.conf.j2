@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+input {
+  beats {
+  host => "{{ openio_logstash_beats_address }}"
+  port => "{{ openio_logstash_beats_port }}"
+  ssl => "{{ openio_logstash_beats_ssl | lower }}"
+  }
+}

@@ -1,4 +1,4 @@
-# roles/ROLENAME/tasks/main.yml
+# roles/logstash/tasks/main.yml
 ---
 - name: "Include {{ ansible_distribution }} variables"
   include_vars: "{{ item }}"
@@ -33,9 +33,11 @@
     path: "{{ item }}"
   register: _dir
   with_items:
-    - "/etc/gridinit.d/{{ openio_ROLENAME_namespace }}"
-    - "{{ openio_ROLENAME_sysconfig_dir }}/ROLENAME-{{ openio_ROLENAME_serviceid }}"
-    #- "{{ openio_ROLENAME_volume }}"
+    - "/etc/gridinit.d/{{ openio_logstash_namespace }}"
+    - "{{ openio_logstash_sysconfig_dir }}/logstash-{{ openio_logstash_serviceid }}"
+    - "{{ openio_logstash_volume }}"
+    - "{{ openio_logstash_sysconfig_dir }}/{{ openio_logstash_servicename }}/conf.d"
+    - "{{ openio_logstash_pid_directory }}"
 
 - name: Ensure directories exists
   file:
@@ -51,13 +53,24 @@
 
 - name: Ensure log directory
   file:
-    path: "/var/log/oio/sds/{{ openio_ROLENAME_namespace }}/ROLENAME-{{ openio_ROLENAME_serviceid }}"
+    path: "/var/log/oio/sds/{{ openio_logstash_namespace }}/logstash-{{ openio_logstash_serviceid }}"
     state: directory
     owner: "{{ syslog_user }}"
     group: openio
-    mode: 0750
+    mode: 0770
     recurse: true
   tags: install
+
+- name: Ensure logstash pid directory is persistant
+  lineinfile:
+    dest: /etc/tmpfiles.d/logstash.conf
+    create: true
+    line: "d {{ openio_logstash_pid_directory }} 755 openio openio -"
+    owner: openio
+    group: openio
+    mode: 0644
+  tags: install
+  when: openio_logstash_pid_directory.split(' ')[0] | dirname is match("/run/.*")
 
 - name: Generate configuration files
   template:
@@ -67,20 +80,42 @@
     group: openio
     mode: 0644
   with_items:
-    - src: "ROLENAME.conf.j2"
-      dest: "{{ openio_ROLENAME_sysconfig_dir }}/\
-        ROLENAME-{{ openio_ROLENAME_serviceid }}/ROLENAME-{{ openio_ROLENAME_serviceid }}.conf"
-    - src: "gridinit_ROLENAME.conf.j2"
-      dest: "{{ openio_ROLENAME_gridinit_dir }}/{{ openio_ROLENAME_gridinit_file_prefix }}\
-        ROLENAME-{{ openio_ROLENAME_serviceid }}.conf"
-  register: _ROLENAME_conf
+    - src: "log4j2.properties.j2"
+      dest: "{{ openio_logstash_sysconfig_dir }}/\
+        {{ openio_logstash_servicename }}/log4j2.properties"
+    - src: "01-beats-input.conf.j2"
+      dest: "{{ openio_logstash_sysconfig_dir }}/\
+        {{ openio_logstash_servicename }}/conf.d/01-beats-input.conf"
+    - src: "10-filter.conf.j2"
+      dest: "{{ openio_logstash_sysconfig_dir }}/\
+        {{ openio_logstash_servicename }}/conf.d/10-filter.conf"
+    - src: "30-elasticsearch-output.conf.j2"
+      dest: "{{ openio_logstash_sysconfig_dir }}/\
+        {{ openio_logstash_servicename }}/conf.d/30-elasticsearch-output.conf"
+    - src: "logstash.yml.j2"
+      dest: "{{ openio_logstash_sysconfig_dir }}/\
+        {{ openio_logstash_servicename }}/logstash.yml"
+    - src: "pipelines.yml.j2"
+      dest: "{{ openio_logstash_sysconfig_dir }}/\
+        {{ openio_logstash_servicename }}/pipelines.yml"
+    - src: "gridinit_logstash.conf.j2"
+      dest: "{{ openio_logstash_gridinit_dir }}/{{ openio_logstash_gridinit_file_prefix }}\
+        {{ openio_logstash_servicename }}.conf"
+  register: _logstash_conf
 
-- name: restart ROLENAME
+- name: Copy openio template
+  copy:
+    src: conf/
+    dest: "{{ openio_logstash_sysconfig_dir }}/{{ openio_logstash_servicename }}/conf.d"
+    owner: openio
+    group: openio
+
+- name: restart logstash
   shell: |
     gridinit_cmd reload
-    gridinit_cmd restart  {{openio_ROLENAME_namespace}}-ROLENAME-{{openio_ROLENAME_serviceid}}
-  when: 
-    - _ROLENAME_conf.changed
-    - not openio_ROLENAME_provision_only
+    gridinit_cmd restart  {{openio_logstash_namespace}}-logstash-{{openio_logstash_serviceid}}
+  when:
+    - _logstash_conf.changed
+    - not openio_logstash_provision_only
   tags: configure
 ...

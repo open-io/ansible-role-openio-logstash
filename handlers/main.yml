@@ -1,8 +1,8 @@
-# roles/ROLENAME/handlers/main.yml
+# roles/logstash/handlers/main.yml
 ---
-#- name: restart ROLENAME
+#- name: restart logstash
 #  service:
-#    name: "{{ ROLENAME_service }}"
+#    name: "{{ logstash_service }}"
 #    state: restarted
 #
 ...
