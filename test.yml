@@ -1,8 +1,20 @@
 # Test playbook
 ---
-
-- hosts: all
+- hosts: localhost
   become: true
+  vars:
+    NS: TRAVIS
   roles:
+    - role: repo
+    - role: gridinit
+      openio_gridinit_namespace: "{{ NS }}"
+      openio_gridinit_per_ns: true
+    - role: elasticsearch
+      openio_elasticsearch_namespace: "{{ NS }}"
+      openio_elasticsearch_bind_address: "{{ ansible_default_ipv4.address }}"
+      openio_elasticsearch_memory: "256M"
     - role: role_under_test
+      openio_logstash_namespace: "{{ NS }}"
+      openio_logstash_memory: "256M"
+
 ...
